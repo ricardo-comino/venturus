@@ -8,39 +8,39 @@ export class Main extends React.Component {
 
   constructor(props) {
     super(props);
-    this.photos = this.photos.bind(this);
-
     this.state = {
       error: null,
       isLoaded: false,
       items: [],
       photos: [],
+      albums: [],
     };
   }
 
   componentDidMount() {
+
+    // API Users
     fetch("https://jsonplaceholder.typicode.com/users")
-        .then(res => res.json())
-        .then(
-          (result) => {
-            this.setState({
-              isLoaded: true,
-              items: result
-            });
-
-            //console.log(result);
-          },
-
-          (error) => {
-            this.setState({
-              isLoaded: true,
-              error
-            });
-          }
+    .then(res => res.json())
+    .then(
+      (result) => {
+        this.setState({
+          isLoaded: true,
+          items: result
+        });
+      },
+      (error) => {
+        this.setState({
+          isLoaded: true,
+          error
+        });
+      }
     )
+    
+    // Call Api - Photos and Albums
+    this.albums(1)
+    this.photos(1);
   }  
-
-
 
   rideInGroup(e) {
 
@@ -73,38 +73,11 @@ export class Main extends React.Component {
     x.remove(x.selectedIndex);
   }
 
-  photos(id) {
-    const url = "https://jsonplaceholder.typicode.com/photos";
 
-    fetch(url)
-    .then(
-      (response) => {
-        if (response.status !== 200) {
-          console.log('Looks like there was a problem. Status Code: ' + response.status);
-          return;
-        }
-  
-        // Examine the text in the response
-        response.json().then(
-          
-          (data) => {
 
-          for(var i=0; i < data.length; i++) {
-            if( data[i].albumId === id) {
-              console.log(data[i].albumId);
-            }
-          }
-        });
-      }
-    )
-    .catch(function(err) {
-      console.log('Fetch Error :', err);
-    });
-  }
+  albums(idUser) {
 
-  albums() {
-
-    fetch("https://jsonplaceholder.typicode.com/albums")
+    fetch("https://jsonplaceholder.typicode.com/albums?userId=" + idUser)
       .then(res => res.json())
       .then(
         (result) => {
@@ -112,7 +85,6 @@ export class Main extends React.Component {
             isLoaded: true,
             albums: result,
           });
-          console.log(result);
         },
 
         (error) => {
@@ -122,6 +94,17 @@ export class Main extends React.Component {
           });
         }
     )
+  }
+
+  photos(idUser) {
+    // API Photos
+    const URL = "https://jsonplaceholder.typicode.com/photos?albumId="+idUser;
+    fetch(URL)
+    .then(response => response.json())
+    .then (json => 
+          this.setState({
+          photos: json
+    }))
   }
 
 
@@ -134,9 +117,27 @@ export class Main extends React.Component {
         var search = col.toLowerCase().indexOf(val) >= 0;
         table.rows[i].style.display = search ? '' : 'none';
     }
-  }
+  } 
+
+
 
   render() {
+    
+    const photos = this.state.photos.map((photo, i)=> {
+      return (<span key={i}>
+        {photo.albumId}
+      </span>
+      )
+    }) 
+    
+    
+    const albums = this.state.albums.map((album, i)=> {
+      return (<span key={i}>
+        {album}
+      </span>
+      )
+    }) 
+
     return (
       <React.Fragment>
         
@@ -155,7 +156,7 @@ export class Main extends React.Component {
                   <li className="trace-gray"></li>
                   <li className="last-child">
                     <FontAwesomeIcon icon={faSearch} className="icon-search" />
-                    <input type="text" placeholder="Filter table content" className="input" id="search" onKeyUp={(e) => this.search(e.target)} />
+                    <input type="text" placeholder="Search Username" className="input" id="search" onKeyUp={(e) => this.search(e.target)} />
                   </li>
                 </ul>
 
@@ -182,9 +183,9 @@ export class Main extends React.Component {
                         <td className="text-green">{item.address.city}</td>
                         <td>{this.rideInGroup(item.id)}</td>
                         <td>{this.daysWeek(item.id)}</td>
-                        <td>{item.id}</td>
-                        <td className="text-green">{item.id}</td>
-                        <td className="text-green">{item.id}</td>
+                        <td className="text-green">{photos.length}</td>
+                        <td className="text-green">{albums.length}</td>
+                        <td>{photos.length}</td>
                         <td className="delete"><FontAwesomeIcon icon={faTrash} /> <span className="pl-5"> Excluir linha</span></td>
                       </tr>
                     ))}
